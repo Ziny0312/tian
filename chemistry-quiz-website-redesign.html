@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F4 CHEMISTRY CHAP 3</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+        }
+        .quiz-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        .option-card {
+            transition: all 0.2s ease;
+            border: 2px solid #e5e7eb;
+        }
+        .option-card:hover {
+            border-color: #60a5fa;
+            transform: translateY(-2px);
+        }
+        .option-card.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .option-card.correct {
+            border-color: #10b981;
+            background-color: #ecfdf5;
+        }
+        .option-card.incorrect {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #4b5563;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+            transform: translateY(-1px);
+        }
+        .molecule {
+            display: inline-block;
+        }
+        .molecule sub {
+            font-size: 0.7em;
+        }
+        .difficulty-tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+        }
+        .difficulty-tag.easy {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .difficulty-tag.medium {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .difficulty-tag.hard {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        .progress-container {
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #3b82f6, #60a5fa);
+            transition: width 0.3s ease;
+        }
+        .header-bg {
+            background: linear-gradient(120deg, #0ea5e9, #2563eb);
+        }
+        .molecule-bg {
+            position: absolute;
+            opacity: 0.05;
+            background-repeat: no-repeat;
+            background-size: cover;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .grid-pattern {
+            background-image: radial-gradient(#3b82f6 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.1;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+        }
+        .nav-pills {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            scrollbar-width: none;
+        }
+        .nav-pills::-webkit-scrollbar {
+            display: none;
+        }
+        .nav-pill {
+            scroll-snap-align: start;
+            flex-shrink: 0;
+            border-radius: 9999px;
+            padding: 0.5rem 1rem;
+            background: #e5e7eb;
+            color: #4b5563;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .nav-pill.active {
+            background: #3b82f6;
+            color: white;
+        }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            background: #4b5563;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .result-card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .result-header {
+            padding: 1rem;
+            background: #eff6ff;
+            border-bottom: 1px solid #dbeafe;
+        }
+        .result-body {
+            padding: 1rem;
+        }
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #eff6ff;
+            border: 8px solid #bfdbfe;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .score-text {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-pattern"></div>
+    
+    <header class="header-bg text-white py-8 relative overflow-hidden shadow-lg">
+        <div class="container mx-auto px-4 relative z-10">
+            <h1 class="text-4xl font-bold text-center mb-2">F4 CHEMISTRY CHAP 3</h1>
+            <p class="text-center text-blue-100 max-w-xl mx-auto">Test your understanding of chemical formulae and equations</p>
+        </div>
+        <div class="molecule-bg"></div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8 max-w-3xl">
+        <!-- Start Screen -->
+        <div id="start-screen" class="quiz-container p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold mb-4">Welcome to F4 CHEMISTRY CHAP 3</h2>
+                <p class="text-gray-600">Enter your name to begin the quiz and test your chemistry knowledge.</p>
+            </div>
+            
+            <form id="name-form" class="flex flex-col items-center">
+                <div class="w-full max-w-md relative mb-6">
+                    <input type="text" id="student-name" placeholder="Your Name" required 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" class="btn-primary px-8 py-3 rounded-lg font-medium shadow-md">
+                    Start Quiz
+                </button>
+            </form>
+            
+            <div class="mt-8 text-center">
+                <div class="inline-block p-3 bg-blue-50 rounded-lg text-sm text-gray-600">
+                    <p>This quiz contains multiple choice and short answer questions about chemistry</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="mb-6 flex justify-between items-center">
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-2">Student:</span> 
+                    <span id="display-name" class="font-semibold"></span>
+                </div>
+                <div>
+                    <span class="text-gray-500 mr-1">Question</span> 
+                    <span id="question-count" class="font-semibold">1/15</span>
+                </div>
+            </div>
+
+            <div class="progress-container mb-6">
+                <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            
+            <div class="nav-pills mb-4 hidden md:flex">
+                <!-- Question pills will be generated here -->
+            </div>
+            
+            <div class="quiz-container p-6 md:p-8">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+                    <h3 id="question-number" class="text-xl font-semibold mb-2 sm:mb-0">Question 1</h3>
+                    <span id="difficulty-tag" class="difficulty-tag easy">Easy</span>
+                </div>
+                
+                <p id="question-text" class="text-lg mb-6"></p>
+                
+                <div id="options-container" class="space-y-3">
+                    <!-- MCQ Options will be generated here -->
+                </div>
+                
+                <div id="short-answer-container" class="hidden mt-6">
+                    <textarea id="short-answer-input" rows="4" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Type your answer here..."></textarea>
+                </div>
+                
+                <div class="mt-8 flex justify-between">
+                    <button id="prev-btn" class="btn-secondary px-6 py-2 rounded-lg font-medium">
+                        Previous
+                    </button>
+                    <button id="next-btn" class="btn-primary px-6 py-2 rounded-lg font-medium">
+                        Next
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden">
+            <div class="quiz-container p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold mb-2">Quiz Completed!</h2>
+                    <p class="text-gray-600" id="completion-message">Good job completing the quiz!</p>
+                </div>
+                
+                <div class="flex flex-col items-center justify-center mb-8">
+                    <div class="score-circle mb-4">
+                        <span id="score-text" class="score-text">0/15</span>
+                    </div>
+                    <p class="text-lg font-medium" id="percentage-text">0%</p>
+                </div>
+                
+                <div class="mb-8">
+                    <div class="h-4 bg-gray-100 rounded-full overflow-hidden">
+                        <div id="score-bar" class="h-full bg-blue-500" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between mt-2 text-sm text-gray-500">
+                        <span>0%</span>
+                        <span>50%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4">
+                    <button id="review-btn" class="btn-primary px-8 py-3 rounded-lg font-medium">
+                        Review Answers
+                    </button>
+                    <button id="restart-btn" class="btn-secondary px-8 py-3 rounded-lg font-medium">
+                        Restart Quiz
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Review Screen -->
+        <div id="review-screen" class="hidden">
+            <div class="mb-6 flex justify-between items-center">
+                <button id="back-to-results" class="btn-primary px-6 py-2 rounded-lg font-medium">
+                    Back to Results
+                </button>
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-2">Student:</span> 
+                    <span id="review-name" class="font-semibold"></span>
+                </div>
+            </div>
+            
+            <div id="review-container" class="space-y-6">
+                <!-- Review items will be generated here -->
+            </div>
+        </div>
+        
+        <div id="toast" class="toast">Answer saved!</div>
+    </div>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 F4 CHEMISTRY CHAP 3. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Quiz data from the documents
+        const quizData = [
+            // Easy MCQs
+            {
+                question: "Based on the carbon-12 scale, the definition of Relative Atomic Mass (RAM) is?",
+                type: "mcq",
+                options: [
+                    "The ratio of the mass of one atom to the mass of one carbon-12 atom.",
+                    "The ratio of the average mass of one atom of an element to 1/12 of the mass of one carbon-12 atom.",
+                    "The ratio of the average mass of one atom of an element to the mass of one hydrogen atom.",
+                    "The number of atoms in 12 grams of carbon-12."
+                ],
+                correctAnswer: 1,
+                explanation: "Relative Atomic Mass (RAM) is defined as the average mass of one atom of an element compared to 1/12 of the mass of one carbon-12 atom. Option (A) misses the 'average' and '1/12'. Option (C) uses hydrogen as the standard (older method). Option (D) relates to the definition of a mole.",
+                difficulty: "easy"
+            },
+            {
+                question: "The \"Mole\" is the SI unit for which physical quantity?",
+                type: "mcq",
+                options: [
+                    "Mass",
+                    "Volume",
+                    "Amount of substance",
+                    "Number of particles"
+                ],
+                correctAnswer: 2,
+                explanation: "The mole (symbol: mol) is the SI base unit for the amount of substance, representing a specific number of elementary entities (Avogadro's number).",
+                difficulty: "easy"
+            },
+            {
+                question: "Which of the following represents the chemical formula for one molecule of oxygen gas?",
+                type: "mcq",
+                options: [
+                    "O",
+                    "2O",
+                    "O₂",
+                    "O₃"
+                ],
+                correctAnswer: 2,
+                explanation: "Oxygen gas exists as diatomic molecules under normal conditions. O represents a single oxygen atom, 2O represents two separate oxygen atoms, and O₃ represents ozone. O₂ correctly represents one oxygen molecule consisting of two oxygen atoms bonded together.",
+                difficulty: "easy"
+            },
+            {
+                question: "In a chemical equation, what does the state symbol (g) written after a chemical formula represent?",
+                type: "mcq",
+                options: [
+                    "Solid",
+                    "Liquid",
+                    "Gas",
+                    "Aqueous solution"
+                ],
+                correctAnswer: 2,
+                explanation: "In chemical equations, state symbols indicate the physical state of the substance: (s) for solid, (l) for liquid, (g) for gas, and (aq) for aqueous solution (dissolved in water).",
+                difficulty: "easy"
+            },
+            {
+                question: "What information does the Empirical Formula of a compound show?",
+                type: "mcq",
+                options: [
+                    "The actual number of atoms of each element.",
+                    "The simplest whole-number ratio of atoms of each element.",
+                    "The relative atomic mass of the atoms.",
+                    "The molar mass of the atoms."
+                ],
+                correctAnswer: 1,
+                explanation: "The empirical formula shows the simplest whole-number ratio of atoms of each element present in a compound. The molecular formula shows the actual number of atoms.",
+                difficulty: "easy"
+            },
+            // Easy SAQs
+            {
+                question: "Define Molar Mass.",
+                type: "saq",
+                correctAnswer: "Molar mass is the mass of one mole of a substance, expressed in grams per mole (g mol⁻¹).",
+                explanation: "It numerically equals the relative atomic mass (for elements), relative molecular mass, or relative formula mass, but it has units of g/mol.",
+                difficulty: "easy"
+            },
+            {
+                question: "Calculate the Relative Molecular Mass (RMM) of water (H₂O). [RAM: H = 1, O = 16]",
+                type: "saq",
+                correctAnswer: "18",
+                explanation: "RMM is the sum of the RAMs of all atoms in the molecule. RMM(H₂O) = (2 × RAM of H) + (1 × RAM of O) = (2 × 1) + (1 × 16) = 2 + 16 = 18. Note: Relative Molecular Mass has no units.",
+                difficulty: "easy"
+            },
+            // Medium MCQs
+            {
+                question: "The relative atomic mass of Magnesium (Mg) is 24. This means the average mass of one magnesium atom is approximately how many times 1/12 the mass of one carbon-12 atom?",
+                type: "mcq",
+                options: [
+                    "1 time",
+                    "12 times",
+                    "24 times",
+                    "1/24 times"
+                ],
+                correctAnswer: 2,
+                explanation: "The RAM of Mg is 24. By definition, this means the average mass of one Mg atom is 24 times the mass of 1/12 of a carbon-12 atom.",
+                difficulty: "medium"
+            },
+            {
+                question: "What is the number of moles in 36 g of water (H₂O)? [RAM: H = 1, O = 16]",
+                type: "mcq",
+                options: [
+                    "1 mol",
+                    "2 mol",
+                    "18 mol",
+                    "36 mol"
+                ],
+                correctAnswer: 1,
+                explanation: "First, find the molar mass of water (H₂O). Molar Mass = (2 × 1) + 16 = 18 g mol⁻¹. Number of moles (n) = Mass / Molar Mass = 36 g / 18 g mol⁻¹ = 2 mol.",
+                difficulty: "medium"
+            },
+            {
+                question: "How many moles are there in 44.8 dm³ of carbon dioxide (CO₂) gas at Standard Temperature and Pressure (STP)?",
+                type: "mcq",
+                options: [
+                    "1 mol",
+                    "2 mol",
+                    "0.5 mol",
+                    "22.4 mol"
+                ],
+                correctAnswer: 1,
+                explanation: "At STP, the molar volume of any gas is 22.4 dm³ mol⁻¹. Number of moles (n) = Volume / Molar Volume (at STP) = 44.8 dm³ / 22.4 dm³ mol⁻¹ = 2 mol.",
+                difficulty: "medium"
+            },
+            // Medium SAQs
+            {
+                question: "Calculate the Relative Formula Mass (RFM) of aluminium sulphate [Al₂(SO₄)₃]. [RAM: O = 16, Al = 27, S = 32]",
+                type: "saq",
+                correctAnswer: "342",
+                explanation: "RFM is the sum of the RAMs of all atoms in the formula unit. RFM[Al₂(SO₄)₃] = (2 × RAM of Al) + 3 × [(RAM of S) + (4 × RAM of O)] = (2 × 27) + 3 × [32 + (4 × 16)] = 54 + 3 × [32 + 64] = 54 + 3 × [96] = 54 + 288 = 342.",
+                difficulty: "medium"
+            },
+            {
+                question: "What is the mass in grams of oxygen gas (O₂) that contains 3.01 × 10²³ oxygen molecules? [RAM: O = 16]",
+                type: "saq",
+                correctAnswer: "16 g",
+                explanation: "First, find the number of moles corresponding to the given number of molecules. Number of moles (n) = Number of particles / N = (3.01 × 10²³ molecules) / (6.02 × 10²³ molecules/mol) = 0.5 mol. Molar mass of O₂ = 2 × RAM of O = 2 × 16 = 32 g mol⁻¹. Mass = Number of moles × Molar Mass = 0.5 mol × 32 g mol⁻¹ = 16 g.",
+                difficulty: "medium"
+            },
+            // Hard SAQs
+            {
+                question: "4.4 g of a gas X occupies a volume of 2.24 dm³ at STP. (a) Calculate the molar mass of gas X. (b) If the empirical formula of gas X is CH₂, deduce its molecular formula. [RAM: H = 1, C = 12]",
+                type: "saq",
+                correctAnswer: "(a) Molar mass = 44 g mol⁻¹ (b) Molecular formula = C₃H₆",
+                explanation: "(a) First, find the number of moles of gas X at STP. n = Volume / Molar Volume (at STP) = 2.24 dm³ / 22.4 dm³ mol⁻¹ = 0.1 mol. Molar Mass = Mass / Number of moles = 4.4 g / 0.1 mol = 44 g mol⁻¹. (b) Find the mass of the empirical formula unit (CH₂). Empirical Formula Mass = (1 × RAM of C) + (2 × RAM of H) = (1 × 12) + (2 × 1) = 14. The molecular formula is (Empirical Formula)n, where n = Molar Mass / Empirical Formula Mass. n = 44 / 14 = 3.14 ≈ 3. Molecular Formula = (CH₂)₃ = C₃H₆.",
+                difficulty: "hard"
+            },
+            {
+                question: "Consider the reaction: 4Al(s) + 3O₂(g) → 2Al₂O₃(s). What mass of aluminium oxide (Al₂O₃) is produced when 10.8 g of aluminium (Al) is burnt completely in excess oxygen? [RAM: O = 16, Al = 27]",
+                type: "saq",
+                correctAnswer: "20.4 g",
+                explanation: "Use stoichiometry based on the balanced equation: 4Al(s) + 3O₂(g) → 2Al₂O₃(s). Convert mass of Al to moles: Molar mass of Al = 27 g mol⁻¹. Moles of Al = Mass / Molar Mass = 10.8 g / 27 g mol⁻¹ = 0.4 mol. Use the mole ratio from the balanced equation to find moles of Al₂O₃: From equation: 4 mol Al produces 2 mol Al₂O₃. So, 0.4 mol Al produces (0.4 mol Al × (2 mol Al₂O₃ / 4 mol Al)) = 0.2 mol Al₂O₃. Convert moles of Al₂O₃ to mass: Molar mass of Al₂O₃ = (2 × RAM of Al) + (3 × RAM of O) = (2 × 27) + (3 × 16) = 54 + 48 = 102 g mol⁻¹. Mass of Al₂O₃ = Moles × Molar Mass = 0.2 mol × 102 g mol⁻¹ = 20.4 g.",
+                difficulty: "hard"
+            },
+            {
+                question: "Oxygen gas is often prepared in the laboratory by heating potassium chlorate(V), KClO₃, according to the equation: 2KClO₃(s) → 2KCl(s) + 3O₂(g). What mass of pure potassium chlorate is needed to produce 4.8 dm³ of oxygen gas (measured at room conditions)? [RAM: O = 16, Cl = 35.5, K = 39]",
+                type: "saq",
+                correctAnswer: "12.25 g",
+                explanation: "Use stoichiometry based on the balanced equation: 2KClO₃(s) → 2KCl(s) + 3O₂(g). Convert volume of O₂ (at room conditions) to moles: Molar volume at room conditions = 24 dm³ mol⁻¹. Moles of O₂ = Volume / Molar Volume = 4.8 dm³ / 24 dm³ mol⁻¹ = 0.2 mol. Use the mole ratio from the balanced equation to find moles of KClO₃ required: From equation: 3 mol O₂ is produced from 2 mol KClO₃. So, to produce 0.2 mol O₂, moles of KClO₃ needed = (0.2 mol O₂ × (2 mol KClO₃ / 3 mol O₂)) = 0.4 / 3 mol KClO₃ ≈ 0.1333 mol. Convert moles of KClO₃ to mass: Molar mass of KClO₃ = (RAM of K) + (RAM of Cl) + (3 × RAM of O) = 39 + 35.5 + (3 × 16) = 39 + 35.5 + 48 = 122.5 g mol⁻¹. Mass of KClO₃ = Moles × Molar Mass = (0.4 / 3) mol × 122.5 g mol⁻¹ = 16.33 g.",
+                difficulty: "hard"
+            }
+        ];
+
+        // DOM elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const reviewScreen = document.getElementById('review-screen');
+        const nameForm = document.getElementById('name-form');
+        const studentNameInput = document.getElementById('student-name');
+        const displayName = document.getElementById('display-name');
+        const reviewName = document.getElementById('review-name');
+        const questionNumber = document.getElementById('question-number');
+        const questionCount = document.getElementById('question-count');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const shortAnswerContainer = document.getElementById('short-answer-container');
+        const shortAnswerInput = document.getElementById('short-answer-input');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const scoreText = document.getElementById('score-text');
+        const percentageText = document.getElementById('percentage-text');
+        const scoreBar = document.getElementById('score-bar');
+        const reviewBtn = document.getElementById('review-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const backToResultsBtn = document.getElementById('back-to-results');
+        const reviewContainer = document.getElementById('review-container');
+        const difficultyTag = document.getElementById('difficulty-tag');
+        const progressBar = document.getElementById('progress-bar');
+        const completionMessage = document.getElementById('completion-message');
+        const toast = document.getElementById('toast');
+        const navPills = document.querySelector('.nav-pills');
+
+        // Quiz state
+        let currentStudent = '';
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let score = 0;
+
+        // Initialize the quiz
+        function initQuiz() {
+            // Create question navigation pills
+            createQuestionPills();
+            
+            // Initialize empty answers array
+            userAnswers = new Array(quizData.length).fill(null);
+            
+            // Event listeners
+            nameForm.addEventListener('submit', startQuiz);
+            prevBtn.addEventListener('click', goToPrevQuestion);
+            nextBtn.addEventListener('click', goToNextQuestion);
+            reviewBtn.addEventListener('click', showReview);
+            restartBtn.addEventListener('click', restartQuiz);
+            backToResultsBtn.addEventListener('click', backToResults);
+            shortAnswerInput.addEventListener('input', saveShortAnswer);
+        }
+
+        // Create question navigation pills
+        function createQuestionPills() {
+            navPills.innerHTML = '';
+            
+            for (let i = 0; i < quizData.length; i++) {
+                const pill = document.createElement('button');
+                pill.className = 'nav-pill';
+                pill.textContent = (i + 1).toString();
+                pill.addEventListener('click', () => loadQuestion(i));
+                navPills.appendChild(pill);
+            }
+        }
+
+        // Start the quiz
+        function startQuiz(e) {
+            e.preventDefault();
+            currentStudent = studentNameInput.value.trim();
+            if (!currentStudent) return;
+            
+            displayName.textContent = currentStudent;
+            reviewName.textContent = currentStudent;
+            
+            // Submit student info to Google Sheet (in real implementation)
+            submitToGoogleSheet({
+                action: 'start',
+                student: currentStudent,
+                timestamp: new Date().toISOString()
+            });
+            
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            
+            loadQuestion(0);
+        }
+
+        // Format question text with subscripts
+        function formatText(text) {
+            return text.replace(/(\w)₂/g, '<span class="molecule">$1<sub>2</sub></span>')
+                      .replace(/(\w)₃/g, '<span class="molecule">$1<sub>3</sub></span>')
+                      .replace(/(\w)₄/g, '<span class="molecule">$1<sub>4</sub></span>')
+                      .replace(/(\w)₆/g, '<span class="molecule">$1<sub>6</sub></span>')
+                      .replace(/(\w)₁₂/g, '<span class="molecule">$1<sub>12</sub></span>')
+                      .replace(/(\w)₁₆/g, '<span class="molecule">$1<sub>16</sub></span>')
+                      .replace(/\[(\w+)\]/g, '[$1]');
+        }
+
+        // Load a question
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const question = quizData[index];
+            
+            // Update question number and progress
+            questionNumber.textContent = `Question ${index + 1}`;
+            questionCount.textContent = `${index + 1}/${quizData.length}`;
+            progressBar.style.width = `${((index + 1) / quizData.length) * 100}%`;
+            
+            // Update navigation pills
+            const pills = document.querySelectorAll('.nav-pill');
+            pills.forEach((pill, i) => {
+                pill.classList.toggle('active', i === index);
+            });
+            
+            // Update difficulty tag
+            difficultyTag.textContent = question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1);
+            difficultyTag.className = 'difficulty-tag';
+            difficultyTag.classList.add(question.difficulty);
+            
+            // Set question text
+            questionText.innerHTML = formatText(question.question);
+            
+            // Clear previous options/input
+            optionsContainer.innerHTML = '';
+            shortAnswerInput.value = '';
+            
+            // Show/hide containers based on question type
+            if (question.type === 'mcq') {
+                optionsContainer.classList.remove('hidden');
+                shortAnswerContainer.classList.add('hidden');
+                
+                // Create options
+                question.options.forEach((option, optionIndex) => {
+                    const optionCard = document.createElement('div');
+                    optionCard.className = 'option-card p-4 rounded-lg cursor-pointer hover:shadow-md';
+                    if (userAnswers[index] === optionIndex) {
+                        optionCard.classList.add('selected');
+                    }
+                    
+                    const optionLabel = document.createElement('label');
+                    optionLabel.className = 'flex items-start cursor-pointer';
+                    
+                    const letter = String.fromCharCode(65 + optionIndex); // A, B, C, D
+                    
+                    optionLabel.innerHTML = `
+                        <div class="flex-shrink-0 w-6 h-6 rounded-full border-2 border-blue-500 flex items-center justify-center mr-3 mt-0.5">
+                            <span class="text-sm font-semibold text-blue-500">${letter}</span>
+                        </div>
+                        <div class="flex-1 text-gray-700">${formatText(option)}</div>
+                    `;
+                    
+                    optionCard.appendChild(optionLabel);
+                    optionsContainer.appendChild(optionCard);
+                    
+                    optionCard.addEventListener('click', () => selectOption(optionIndex));
+                });
+            } else {
+                optionsContainer.classList.add('hidden');
+                shortAnswerContainer.classList.remove('hidden');
+                
+                if (userAnswers[index] !== null) {
+                    shortAnswerInput.value = userAnswers[index];
+                }
+            }
+            
+            // Update navigation buttons
+            prevBtn.disabled = index === 0;
+            prevBtn.classList.toggle('opacity-50', index === 0);
+            
+            if (index === quizData.length - 1) {
+                nextBtn.textContent = 'Submit Quiz';
+            } else {
+                nextBtn.textContent = 'Next';
+            }
+        }
+
+        // Select MCQ option
+        function selectOption(optionIndex) {
+            const question = quizData[currentQuestionIndex];
+            
+            if (question.type === 'mcq') {
+                userAnswers[currentQuestionIndex] = optionIndex;
+                
+                // Visual feedback
+                const options = optionsContainer.querySelectorAll('.option-card');
+                options.forEach((option, index) => {
+                    option.classList.toggle('selected', index === optionIndex);
+                });
+                
+                showToast('Answer saved');
+                
+                // Submit answer to Google Sheet (in real implementation)
+                submitToGoogleSheet({
+                    action: 'answer',
+                    student: currentStudent,
+                    question: currentQuestionIndex + 1,
+                    answer: String.fromCharCode(65 + optionIndex),
+                    correct: optionIndex === question.correctAnswer,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        }
+        
+        // Save short answer
+        function saveShortAnswer() {
+            const question = quizData[currentQuestionIndex];
+            
+            if (question.type === 'saq') {
+                userAnswers[currentQuestionIndex] = shortAnswerInput.value;
+                
+                showToast('Answer saved');
+            }
+        }
+        
+        // Show toast notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Go to previous question
+        function goToPrevQuestion() {
+            if (currentQuestionIndex > 0) {
+                loadQuestion(currentQuestionIndex - 1);
+            }
+        }
+
+        // Go to next question
+        function goToNextQuestion() {
+            if (currentQuestionIndex < quizData.length - 1) {
+                loadQuestion(currentQuestionIndex + 1);
+            } else {
+                // Submit quiz
+                submitQuiz();
+            }
+        }
+
+        // Submit the quiz
+        function submitQuiz() {
+            // Calculate score
+            score = 0;
+            
+            quizData.forEach((question, index) => {
+                const userAnswer = userAnswers[index];
+                
+                if (userAnswer !== null) {
+                    if (question.type === 'mcq') {
+                        if (userAnswer === question.correctAnswer) {
+                            score++;
+                        }
+                    } else if (question.type === 'saq') {
+                        // Simple exact match for SAQ (can be improved)
+                        const normalizedUserAnswer = userAnswer.trim().toLowerCase();
+                        const normalizedCorrectAnswer = question.correctAnswer.toLowerCase();
+                        
+                        if (normalizedUserAnswer === normalizedCorrectAnswer) {
+                            score++;
+                        }
+                    }
+                }
+            });
+            
+            // Update results screen
+            scoreText.textContent = `${score}/${quizData.length}`;
+            const percentage = Math.round((score / quizData.length) * 100);
+            percentageText.textContent = `${percentage}%`;
+            scoreBar.style.width = `${percentage}%`;
+            
+            // Custom completion message based on score
+            if (percentage >= 80) {
+                completionMessage.textContent = 'Excellent! You have a strong understanding of chemistry concepts.';
+            } else if (percentage >= 60) {
+                completionMessage.textContent = 'Good job! You're on the right track with your chemistry knowledge.';
+            } else {
+                completionMessage.textContent = 'Keep studying! Chemistry concepts take time to master.';
+            }
+            
+            // Submit final score to Google Sheet (in real implementation)
+            submitToGoogleSheet({
+                action: 'complete',
+                student: currentStudent,
+                score: score,
+                total: quizData.length,
+                percentage: percentage,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Switch to results screen
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+        }
+
+        // Show review screen
+        function showReview() {
+            resultsScreen.classList.add('hidden');
+            reviewScreen.classList.remove('hidden');
+            
+            // Generate review items
+            reviewContainer.innerHTML = '';
+            
+            quizData.forEach((question, index) => {
+                const userAnswer = userAnswers[index];
+                let isCorrect = false;
+                
+                if (question.type === 'mcq') {
+                    isCorrect = userAnswer === question.correctAnswer;
+                } else if (question.type === 'saq') {
+                    const normalizedUserAnswer = userAnswer ? userAnswer.trim().toLowerCase() : '';
+                    const normalizedCorrectAnswer = question.correctAnswer.toLowerCase();
+                    isCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
+                }
+                
+                // Create review item
+                const reviewItem = document.createElement('div');
+                reviewItem.className = 'result-card mb-6';
+                
+                const headerClass = isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
+                const statusText = isCorrect ? 'Correct' : 'Incorrect';
+                const statusClass = isCorrect ? 'text-green-600' : 'text-red-600';
+                
+                reviewItem.innerHTML = `
+                    <div class="result-header ${headerClass} flex justify-between items-center">
+                        <h3 class="text-lg font-medium">Question ${index + 1}</h3>
+                        <span class="font-medium ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="result-body bg-white">
+                        <p class="text-gray-800 mb-4">${formatText(question.question)}</p>
+                        
+                        ${question.type === 'mcq' ? 
+                            `<div class="mb-4">
+                                <p class="text-sm text-gray-600 mb-2">Your answer:</p>
+                                <p class="${isCorrect ? 'text-green-600' : 'text-red-600'} font-medium">
+                                    ${userAnswer !== null ? formatText(question.options[userAnswer]) : 'Not answered'}
+                                </p>
+                            </div>
+                            ${!isCorrect ? 
+                                `<div>
+                                    <p class="text-sm text-gray-600 mb-2">Correct answer:</p>
+                                    <p class="text-green-600 font-medium">${formatText(question.options[question.correctAnswer])}</p>
+                                </div>` : ''
+                            }`
+                            : 
+                            `<div class="mb-4">
+                                <p class="text-sm text-gray-600 mb-2">Your answer:</p>
+                                <p class="${isCorrect ? 'text-green-600' : 'text-red-600'} font-medium">
+                                    ${userAnswer || 'Not answered'}
+                                </p>
+                            </div>
+                            ${!isCorrect ? 
+                                `<div>
+                                    <p class="text-sm text-gray-600 mb-2">Correct answer:</p>
+                                    <p class="text-green-600 font-medium">${formatText(question.correctAnswer)}</p>
+                                </div>` : ''
+                            }`
+                        }
+                        
+                        <div class="mt-4 p-3 bg-gray-50 rounded-md">
+                            <p class="text-sm text-gray-700"><span class="font-medium">Explanation:</span> ${question.explanation}</p>
+                        </div>
+                    </div>
+                `;
+                
+                reviewContainer.appendChild(reviewItem);
+            });
+        }
+
+        // Back to results screen
+        function backToResults() {
+            reviewScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+        }
+
+        // Restart the quiz
+        function restartQuiz() {
+            // Reset state
+            currentQuestionIndex = 0;
+            userAnswers = new Array(quizData.length).fill(null);
+            score = 0;
+            
+            // Reset UI
+            resultsScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            studentNameInput.value = '';
+        }
+
+        // Function to submit data to Google Sheet (placeholder)
+        function submitToGoogleSheet(data) {
+            console.log('Submitting to Google Sheet:', data);
+            
+            // In a real implementation, this would send data to a Google Sheet
+            // through a web app or service like Google Apps Script
+            
+            // Example implementation:
+            // fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+            //     method: 'POST',
+            //     mode: 'no-cors',
+            //     cache: 'no-cache',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     redirect: 'follow',
+            //     body: JSON.stringify(data)
+            // });
+        }
+
+        // Initialize quiz when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initQuiz);
+    </script>
